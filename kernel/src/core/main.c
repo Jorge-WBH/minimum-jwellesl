@@ -1,6 +1,14 @@
 #include "minemu/boot.h"
 #include "minemu/trap.h"
 #include "minemu/trace.h"
+#include "minemu/platform.h" // needed for the MINEMU_UART0 stuff
+#include "minemu/uart.h"
+
+// no standard libraries :(
+size_t length(char* x) {
+    if (*x == 0) { return 0; }
+    else { return 1+length(x+1); }
+}
 
 void minemu_kernel_main(const struct minemu_boot_info *boot_info) {
     if ((uintptr_t)boot_info != MINEMU_BOOT_INFO_VADDR ||
@@ -14,6 +22,20 @@ void minemu_kernel_main(const struct minemu_boot_info *boot_info) {
         minemu_trace_event(UINT32_C(0xb007bad0));
         minemu_fail_stop();
     }
+    // say hello to the world
+    char* string = "hello world\n";
+
+    for (size_t i = 0; i < length(string); i++) {
+        // first check if TX is ready
+        while (!(MINEMU_UART0->status & MINEMU_UART_STATUS_TX_READY)) {
+            // wait until ready
+        }
+        MINEMU_UART0->tx_data = (uint32_t)string[i];
+    }    
+
+    // uart_print(string);
+    // using the uart driver
+
     minemu_trace_event(1);
     minemu_fail_stop();
 }
