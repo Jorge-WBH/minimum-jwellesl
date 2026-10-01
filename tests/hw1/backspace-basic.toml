@@ -1,0 +1,16 @@
+# Backspace (0x08) must actually remove the preceding character from the
+# line, not just move a cursor: "hellp" + backspace + "o" must become
+# "hello", not "hellpo" or "hello" by coincidence.
+image = "../../image/build/minimum.img"
+boot_rom = "../../bootloader/bootloader.bin"
+max_ticks = 500000
+
+[[inputs]]
+at_tick = 300000
+uart = 0
+data = "echo hellp\bo\n"
+
+[assert]
+uart0_contains = "hello"
+execution_lifecycle = "paused"
+shutdown_lifecycle = "stopped"

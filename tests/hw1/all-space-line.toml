@@ -1,0 +1,20 @@
+# A line that's all spaces (no visible command) must be treated the same as
+# a truly empty line: an empty command, no output, straight back to prompt.
+image = "../../image/build/minimum.img"
+boot_rom = "../../bootloader/bootloader.bin"
+max_ticks = 800000
+
+[[inputs]]
+at_tick = 300000
+uart = 0
+data = "    \n"
+
+[[inputs]]
+at_tick = 500000
+uart = 0
+data = "echo marker\n"
+
+[assert]
+uart0_contains = "msh> msh> "
+execution_lifecycle = "paused"
+shutdown_lifecycle = "stopped"

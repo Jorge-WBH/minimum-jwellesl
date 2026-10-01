@@ -1,0 +1,16 @@
+# "echo" with no arguments must print just a newline, i.e. a visibly empty
+# line between the two prompts, not nothing at all. That's what distinguishes
+# this from tests/hw1/empty-line.toml.
+image = "../../image/build/minimum.img"
+boot_rom = "../../bootloader/bootloader.bin"
+max_ticks = 500000
+
+[[inputs]]
+at_tick = 300000
+uart = 0
+data = "echo\n"
+
+[assert]
+uart0_contains = "msh> \nmsh> "
+execution_lifecycle = "paused"
+shutdown_lifecycle = "stopped"

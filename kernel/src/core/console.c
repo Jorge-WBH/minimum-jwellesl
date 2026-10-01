@@ -47,7 +47,7 @@ void mprintf(const char *format, ...) {
         ++p;
         switch (*p) {
         case 's':
-            uart_print(va_arg(args, const char *));
+            uart_print(va_arg(args, char *));
             break;
         case 'd':
             print_int(va_arg(args, int));
