@@ -6,4 +6,6 @@
 **/*.elf
 **/*.map
 **/*.img
-/chatlogs-hw1
+/chatlogs-*
+metadata.txt
+CLAUDE.md
