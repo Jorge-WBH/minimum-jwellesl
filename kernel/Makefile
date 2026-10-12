@@ -14,7 +14,8 @@ CORE_OBJECTS := \
 	$(BUILD)/core/msh.o \
 	$(BUILD)/startup/irq.o \
 	$(BUILD)/startup/svc.o \
-	$(BUILD)/core/loader.o
+	$(BUILD)/core/loader.o \
+	$(BUILD)/core/syscall.o
 
 RUNTIME_OBJECTS := \
 	$(BUILD)/runtime/block.o \

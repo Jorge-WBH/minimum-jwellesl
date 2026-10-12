@@ -20,8 +20,8 @@
 #define SYSTEM_ROM_TABLE_COUNT 4U
 // #define CPSR_MODE_MASK UINT32_C(0x1f)
 // #define CPSR_MODE_USR UINT32_C(0x10)
-#define CPSR_THUMB UINT32_C(0x20)
-#define A32_SVC_ZERO UINT32_C(0xef000000)
+// #define CPSR_THUMB UINT32_C(0x20)
+// #define A32_SVC_ZERO UINT32_C(0xef000000)
 // #define TRACE_USER_SYSCALL UINT32_C(0x48454c10)
 
 static uint32_t system_rom_tables[SYSTEM_ROM_TABLE_COUNT][1024]
@@ -267,25 +267,13 @@ static bool load_user_module(const struct minemu_boot_info *boot_info,
     return true;
 }
 
-void minemu_undefined_dispatch(struct minemu_trap_frame *frame) {
-    (void)frame;
-    minemu_trace_event(UINT32_C(0x48454c03));
-    minemu_fail_stop();
-}
-
-void minemu_abort_dispatch(struct minemu_trap_frame *frame) {
-    (void)frame;
-    minemu_trace_event(UINT32_C(0x48454c04));
-    minemu_fail_stop();
-}
-
 // man why doesn't the template code come with comments :(
 uint32_t minemu_load_usr_program(const struct minemu_boot_info *boot_info) {
     static const char module_name[] = "minimum-user";
 
     // The following calls are can fail, so we put a trace event if they don't work
     
-    // traces: 1 = map, 2 = finding module, 4 = loading module
+    // traces: 1 = map, 2 = finding module, 5 = loading module
     
     if(!map_system_rom(boot_info)) {
         minemu_trace_event(UINT32_C(0x48454c01));
@@ -297,7 +285,7 @@ uint32_t minemu_load_usr_program(const struct minemu_boot_info *boot_info) {
         minemu_fail_stop();
     }
     if(!load_user_module(boot_info, module)) {
-        minemu_trace_event(UINT32_C(0x48454c04));
+        minemu_trace_event(UINT32_C(0x48454c05));
         minemu_fail_stop();
     }
 
