@@ -5,19 +5,7 @@
 #include "minemu/platform.h" // needed for the MINEMU_UART0 stuff
 #include "minemu/uart.h"
 #include "minemu/msh.h"
-
-// no standard libraries :(
-size_t length(char *x)
-{
-    if (*x == 0)
-    {
-        return 0;
-    }
-    else
-    {
-        return 1 + length(x + 1);
-    }
-}
+#include "minemu/loader.h" // the loader we made
 
 void minemu_kernel_main(const struct minemu_boot_info *boot_info)
 {
@@ -33,19 +21,9 @@ void minemu_kernel_main(const struct minemu_boot_info *boot_info)
         minemu_trace_event(UINT32_C(0xb007bad0));
         minemu_fail_stop();
     }
-    // say hello to the world
-    char* string = "hello world\n";
 
-    for (size_t i = 0; i < length(string); i++) {
-        // first check if TX is ready
-        while (!(MINEMU_UART0->status & MINEMU_UART_STATUS_TX_READY)) {
-            // wait until ready
-        }
-        MINEMU_UART0->tx_data = (uint32_t)string[i];
-    }
+    uint32_t usr = minemu_load_usr_program(boot_info);
 
-    // uart_print(string);
-    // using the uart driver
 
     // Unmask UART0 at the interrupt controller, enable RX interrupts on the
     // UART peripheral itself, then unmask IRQs on the CPU. All three are
@@ -55,5 +33,5 @@ void minemu_kernel_main(const struct minemu_boot_info *boot_info)
     minemu_irq_enable();
 
     minemu_trace_event(1);
-    msh_run();
+    minemu_enter_user(usr, USER_STACK_TOP);
 }

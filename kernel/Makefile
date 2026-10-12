@@ -12,14 +12,18 @@ CORE_OBJECTS := \
 	$(BUILD)/core/console.o \
 	$(BUILD)/core/irq.o \
 	$(BUILD)/core/msh.o \
-	$(BUILD)/startup/irq.o
+	$(BUILD)/startup/irq.o \
+	$(BUILD)/startup/svc.o \
+	$(BUILD)/core/loader.o
+
 RUNTIME_OBJECTS := \
 	$(BUILD)/runtime/block.o \
 	$(BUILD)/runtime/exception.o \
 	$(BUILD)/runtime/memory.o \
 	$(BUILD)/runtime/trace.o \
 	$(BUILD)/startup/boot.o \
-	$(BUILD)/startup/vectors.o
+	$(BUILD)/startup/vectors.o \
+	$(BUILD)/startup/user.o
 
 OBJECTS := $(CORE_OBJECTS) $(RUNTIME_OBJECTS)
 DEPENDENCIES := $(OBJECTS:.o=.d)
