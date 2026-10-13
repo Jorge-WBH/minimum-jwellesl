@@ -13,5 +13,9 @@ void uart_rx_push(char c);
 /* Called from normal (non-interrupt) context: pops the oldest received byte
  * into *out. Returns false and leaves *out untouched if the buffer is empty. */
 bool uart_rx_pop(char *out);
+bool uart_rx_sys_pop(char *out);
+
+/* True when the RX ring buffer holds at least one unread byte. */
+bool uart_has_byte(void);
 
 #endif

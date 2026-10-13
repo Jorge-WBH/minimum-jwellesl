@@ -13,8 +13,6 @@ struct minemu_trap_frame *minemu_irq_dispatch(struct minemu_trap_frame *frame) {
         }
         break;
     default:
-        // TODO: decide what, if anything, other sources (systick, UART1,
-        // block) need for Task 2. Safe to leave unhandled for now.
         break;
     }
 

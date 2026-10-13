@@ -8,6 +8,11 @@ static char rx_buffer[UART_RX_BUFFER_SIZE];
 static volatile size_t rx_head; /* next slot the ISR will write to */
 static volatile size_t rx_tail; /* next slot the main loop will read from */
 
+// True when the RX ring holds at least one unread byte (head has moved past tail)
+bool uart_has_byte(void) {
+    return rx_head != rx_tail;
+}
+
 void uart_rx_push(char c) {
     size_t next_head = (rx_head + 1) % UART_RX_BUFFER_SIZE;
     if (next_head == rx_tail) {
@@ -27,6 +32,16 @@ bool uart_rx_pop(char *out) {
     *out = rx_buffer[rx_tail];
     rx_tail = (rx_tail + 1) % UART_RX_BUFFER_SIZE;
     minemu_irq_enable();
+    return true;
+}
+
+// This version does not turn on or off interrupts
+bool uart_rx_sys_pop(char *out) {
+    if (rx_head == rx_tail) {
+        return false;
+    }
+    *out = rx_buffer[rx_tail];
+    rx_tail = (rx_tail + 1) % UART_RX_BUFFER_SIZE;
     return true;
 }
 

@@ -32,6 +32,5 @@ void minemu_kernel_main(const struct minemu_boot_info *boot_info)
     MINEMU_UART0->control |= MINEMU_UART_CONTROL_RX_IRQ_ENABLE;
     minemu_irq_enable();
 
-    minemu_trace_event(1);
     minemu_enter_user(usr, USER_STACK_TOP);
 }

@@ -1,4 +1,4 @@
-// Template code provided courtesy of the example code
+// Template code provided courtesy of the example code in examples/process-basics & examples/user-mode-hello
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -290,4 +290,80 @@ uint32_t minemu_load_usr_program(const struct minemu_boot_info *boot_info) {
     }
 
     return module->entry_vaddr;
+}
+
+static bool range_has_flags(uint32_t address, uint32_t length,
+                            uint32_t required) {
+    if (length == 0) {
+        return true;
+    }
+    if (address < USER_IMAGE_BASE || length > UINT32_MAX - address ||
+        address + length > USER_STACK_TOP) {
+        return false;
+    }
+    uint32_t final_page =
+        (address + length - 1U) & MINEMU_PTE_PAGE_MASK;
+    for (uint32_t page = address & MINEMU_PTE_PAGE_MASK;;
+         page += MINEMU_PAGE_SIZE) {
+        uint32_t pte = user_page_table[(page >> 12) & 1023U];
+        uint32_t needed = MINEMU_PTE_VALID | MINEMU_PTE_USER | required;
+        if ((pte & needed) != needed) {
+            return false;
+        }
+        if (page == final_page) {
+            return true;
+        }
+    }
+}
+
+bool usr_readable(uint32_t address, uint32_t length) {
+    return range_has_flags(address, length, MINEMU_PTE_READABLE);
+}
+
+bool usr_writable(uint32_t address, uint32_t length) {
+    return range_has_flags(address, length, MINEMU_PTE_WRITABLE);
+}
+
+static void *kernel_pointer(uint32_t address) {
+    uint32_t pte = user_page_table[(address >> 12) & 1023U];
+    uint32_t physical = (pte & MINEMU_PTE_PAGE_MASK) |
+                        (address & (MINEMU_PAGE_SIZE - 1U));
+    return (void *)(uintptr_t)(MINEMU_KERNEL_DIRECT_BASE + physical -
+                               MINEMU_RAM_BASE);
+}
+
+static void copy_range(uint32_t user_address, uint8_t *kernel_bytes,
+                       uint32_t length, bool to_user) {
+    while (length != 0) {
+        uint32_t chunk =
+            MINEMU_PAGE_SIZE - (user_address & (MINEMU_PAGE_SIZE - 1U));
+        if (chunk > length) {
+            chunk = length;
+        }
+        void *user_bytes = kernel_pointer(user_address);
+        if (to_user) {
+            copy_bytes(user_bytes, kernel_bytes, chunk);
+        } else {
+            copy_bytes(kernel_bytes, user_bytes, chunk);
+        }
+        user_address += chunk;
+        kernel_bytes += chunk;
+        length -= chunk;
+    }
+}
+
+bool usr_copy_from(void *destination, uint32_t source, uint32_t length) {
+    if (!usr_readable(source, length)) {
+        return false;
+    }
+    copy_range(source, destination, length, false);
+    return true;
+}
+
+bool usr_copy_to(uint32_t destination, const void *source, uint32_t length) {
+    if (!usr_writable(destination, length)) {
+        return false;
+    }
+    copy_range(destination, (uint8_t *)(uintptr_t)source, length, true);
+    return true;
 }
