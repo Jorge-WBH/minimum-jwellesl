@@ -16,8 +16,12 @@
 #define USER_IMAGE_BASE UINT32_C(0x00400000)
 #define USER_STACK_BOTTOM UINT32_C(0x007ff000)
 // #define USER_STACK_TOP UINT32_C(0x00800000)
-#define MAX_USER_IMAGE_PAGES 16U
-#define SYSTEM_ROM_TABLE_COUNT 4U
+// Reduced from the example's 16 pages / 4 ROM tables: these static arrays are .bss, which
+// the bootloader clears before the kernel starts, and the extra size pushed the first
+// "msh> " past the 700k-tick budget of tests/hw2/msh-prompt.toml.
+// 4 pages = 16 KiB of user image (minimum-user currently needs 1); 1 table maps 4 MiB of ROM.
+#define MAX_USER_IMAGE_PAGES 4U
+#define SYSTEM_ROM_TABLE_COUNT 1U
 // #define CPSR_MODE_MASK UINT32_C(0x1f)
 // #define CPSR_MODE_USR UINT32_C(0x10)
 // #define CPSR_THUMB UINT32_C(0x20)

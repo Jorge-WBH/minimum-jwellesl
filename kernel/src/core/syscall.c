@@ -35,6 +35,13 @@ static int32_t uart_read_ioctl(uint32_t address, uint32_t count) {
         !usr_writable(address, count)) {
         return MINEMU_IOCTL_ERROR;
     }
+    // A user program that polls this syscall in a tight loop spends almost all of its
+    // time in SVC mode with IRQs masked, so the UART0 IRQ may never get delivered.
+    // Drain whatever is still waiting in the hardware into the ring (same as irq.c does)
+    // so input is never stuck. Ring bytes are older than hardware bytes, so order holds.
+    while (MINEMU_UART0->status & MINEMU_UART_STATUS_RX_READY) {
+        uart_rx_push((char)MINEMU_UART0->rx_data);
+    }
     uint32_t copied = 0;
     while (copied < count) {
         char x;
@@ -81,8 +88,10 @@ static int32_t ioctl_dispatch(int32_t fd, uint32_t request,
             return MINEMU_IOCTL_ERROR;
         }
         uint32_t result = 0;
-        // RX bytes are drained into the ring by the IRQ handler, so ask the ring
-        if (uart_has_byte()) {
+        // Input may be in the ring (moved there by the IRQ handler or a read) or still
+        // waiting in the hardware (IRQ not delivered yet), so check both
+        if (uart_has_byte() ||
+            (MINEMU_UART0->status & MINEMU_UART_STATUS_RX_READY) != 0) {
             result |= MINEMU_IOCTL_UART_RX_READY;
         }
         if ((MINEMU_UART0->status & MINEMU_UART_STATUS_TX_READY) != 0) {
